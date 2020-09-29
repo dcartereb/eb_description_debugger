@@ -6,7 +6,7 @@ You can look up EB event descriptions using their API endpoint. It is rendered t
 
 - clone the repo
 - copy .env.example to .env
-- find (or make) an EB API key (https://www.eventbrite.com/support/articles/en_US/How_To/how-to-locate-your-eventbrite-api-user-key?lg=en_US)
+- find (or make) an EB API key (by default, it will use evbqa.com. You can override this in .env) (https://www.eventbrite.com/support/articles/en_US/How_To/how-to-locate-your-eventbrite-api-user-key?lg=en_US)
 - open .env and put your key beside EBKEY=
 - in your terminal, run:
 
