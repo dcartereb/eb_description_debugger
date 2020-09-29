@@ -10,36 +10,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 const ebkey = process.env.EBKEY;
 
-app.get('/', (req, res) => {
-    res.send('Enter an event ID on the url like: http://localhost:3000/12345234234');
-});
-app.get('/:id', async (req, res) => {
-    const id = req.params.id;
-
-    if (!id) {
-        return res.send('NO ID');
-    }
-
-    let apiResponse;
-    try {
-        apiResponse = await fetch(`https://www.evbqaapi.com/v3/events/${id}/description/?token=${ebkey}`)
-    } catch(er) {
-        res.send(JSON.stringify({
-            'failure': true,
-            'message': er.message,
-        }));
-    }
-
-    const json = await apiResponse.json()
-
-    const entities = new Entities();
-
-
-    res.send(`<!DOCTYPE html>
+const html = ({body = '', head = ''} = {}) => `<!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
-        <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/highlight.min.js"></script>
+    <head>${head}
         <style type="text/css">
             html, body {
                 background-color: #222;
@@ -56,21 +29,67 @@ app.get('/:id', async (req, res) => {
             }
         </style>
     </head>
-    <body>
-        <div class="rendered">
-            ${json.description}
-        </div>
-        <pre><code class="html">${entities.encode(pretty(json.description))}</code></pre>
-    </body>
-    <script type="text/javascript">
-        document.addEventListener('DOMContentLoaded', (event) => {
-            document.querySelectorAll('pre code').forEach((block) => {
-                hljs.highlightBlock(block);
-            });
-        });
-    </script>
-</html>
-`);
+    <body>${body}</body>
+</html>`;
+
+app.get('/', (req, res) => {
+    res.send('Enter an event ID on the url like: http://localhost:3000/12345234234');
+});
+app.get('/:id', async (req, res) => {
+    const id = req.params.id;
+
+    if (!id) {
+        return res.send('NO ID');
+    }
+
+    let apiResponse;
+    try {
+        apiResponse = await fetch(`https://www.evbqaapi.com/v3/events/${id}/description/?token=${ebkey}`)
+    } catch(er) {
+        res.send(
+            html({body: 'Fetch totally failed. Thats pretty bad.'})
+        );
+        return;
+    }
+
+    if (apiResponse.status !== 200) {
+        res.send(
+            html({body: `
+                <div class="rendered">
+                    <h1>Sorry, something went wrong :(</h1>
+                    <p>HTTP code ${apiResponse.status}</p>
+                </div>
+            `})
+        );
+        return;
+    }
+
+    const json = await apiResponse.json()
+
+    const entities = new Entities();
+
+
+    res.send(
+        html({
+            head: `
+                <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/styles/default.min.css">
+                <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@10.1.2/build/highlight.min.js"></script>
+            `,
+            body: `
+                <div class="rendered">
+                    ${json.description}
+                </div>
+                <pre><code class="html">${entities.encode(pretty(json.description))}</code></pre>
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', (event) => {
+                        document.querySelectorAll('pre code').forEach((block) => {
+                            hljs.highlightBlock(block);
+                        });
+                    });
+                </script>
+            `,
+        })
+    );
 });
 
 app.listen(port, () => {

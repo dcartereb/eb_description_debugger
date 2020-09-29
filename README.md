@@ -10,7 +10,6 @@ You can look up EB event descriptions using their API endpoint. It is rendered t
 - open .env and put your key beside EBKEY=
 - in your terminal, run:
 
-    npm install
-    npm start
+    npm install && npm start
 
 - now you should be able to go in your browser to localhost:3000
