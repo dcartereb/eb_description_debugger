@@ -4,11 +4,12 @@ const express = require('express');
 const path = require('path');
 const fetch = require('node-fetch');
 const Entities = require('html-entities').XmlEntities;
-const pretty = require('pretty')
+const pretty = require('pretty');
 
 const app = express();
 const port = process.env.PORT || 3000;
 const ebkey = process.env.EBKEY;
+const apiroot = process.env.APIROOT || '';
 
 const html = ({body = '', head = ''} = {}) => `<!DOCTYPE html>
 <html>
@@ -33,9 +34,15 @@ const html = ({body = '', head = ''} = {}) => `<!DOCTYPE html>
 </html>`;
 
 app.get('/', (req, res) => {
-    res.send('Enter an event ID on the url like: http://localhost:3000/12345234234');
+    res.send(
+        html({body: '<p class="rendered">Enter an event ID on the url like: http://localhost:3000/event/12345234234</p>'})
+    );
 });
-app.get('/:id', async (req, res) => {
+app.get('/event/:id', async (req, res) => {
+    if (!apiroot) {
+        return res.send('NO APIROOT SPECIFIED');
+    }
+
     const id = req.params.id;
 
     if (!id) {
